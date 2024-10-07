@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, act } from "@testing-library/react-native";
 import TaskItem from "../components/TaskItem";
 
 test("swiping left triggers deleteTask", () => {
@@ -17,7 +17,9 @@ test("swiping left triggers deleteTask", () => {
     />
   );
 
-  fireEvent.press(getByTestId("deleteTaskItemButton"));
+  act(() => {
+    fireEvent.press(getByTestId("deleteTaskItemButton"));
+  });
 
   expect(deleteTask).toHaveBeenCalled();
 });
@@ -37,10 +39,14 @@ test("swiping right triggers editTask and checkTask", () => {
     />
   );
 
-  // Simulate right swipe
-  fireEvent.press(getByTestId("editTaskItemButton"));
+  act(() => {
+    // Simulate right swipe
+    fireEvent.press(getByTestId("editTaskItemButton"));
+  });
   expect(editTask).toHaveBeenCalled();
 
-  fireEvent.press(getByTestId("checkTaskItemButton"));
+  act(() => {
+    fireEvent.press(getByTestId("checkTaskItemButton"));
+  });
   expect(checkTask).toHaveBeenCalled();
 });

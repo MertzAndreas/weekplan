@@ -168,5 +168,4 @@ describe("useWeek hook", () => {
 
     expect(result.current.weekNumber).toBe(1);
   });
-
 });
