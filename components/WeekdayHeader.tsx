@@ -47,7 +47,7 @@ const WeekDayHeader: React.FC<WeekDayHeaderProps> = ({onDayPress}) => {
                     />
                 ))}
             </View>
-            <CopyDayDataModal sourceDate={new Date()} destinationDate={new Date()} visible={true}/>
+            <CopyDayDataModal sourceDate={new Date()} destinationDate={new Date()}/>
         </View>
     );
 };
