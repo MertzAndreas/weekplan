@@ -19,56 +19,65 @@ type CopyDayDataModalProps = {
   visible: boolean;
 };
 
-export const CopyDayDataModal = (props: CopyDayDataModalProps) => {
-  const [canSubmit, setCanSubmit] = useState(false);
+type DayData = {
+  date: Date;
+  data: TaskDTO[];
+};
 
+export const CopyDayDataModal = (props: CopyDayDataModalProps) => {
   const [alertText, setAlertText] = useState("");
   const [modalVisible, setModalVisible] = useState(props.visible);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const datePickerRef = useRef<"source" | "destination">("destination");
 
-  const [destinationDate, setDestinationDate] = useState<Date>(
-    props.destinationDate
-  );
-  const [destinationData, setDestinationData] = useState<TaskDTO[]>(
-    props.destinationData ?? getDayData(destinationDate)
-  );
-  const [sourceDate, setSourceDate] = useState<Date>(props.sourceDate);
-  const [sourceData, setSourceData] = useState<TaskDTO[]>(
-    props.sourceData ?? getDayData(sourceDate)
-  );
+  const [dayData, setDayData] = useState<{
+    source: DayData;
+    destination: DayData;
+  }>({
+    source: {
+      date: props.sourceDate,
+      data: props.sourceData ?? getDayData(props.sourceDate),
+    },
+    destination: {
+      date: props.destinationDate,
+      data: props.destinationData ?? getDayData(props.destinationDate),
+    },
+  });
+
+  const datePickerRef = useRef<"source" | "destination">("destination");
 
   const handleDateChange = useCallback((selectedDate: Date | undefined) => {
     setShowDatePicker(false);
     if (!selectedDate) return;
 
-    if (datePickerRef.current === "source") {
-      setSourceDate(selectedDate);
-      setSourceData(getDayData(selectedDate));
-    } else {
-      setDestinationDate(selectedDate);
-      setDestinationData(getDayData(selectedDate));
-    }
+    setDayData((prevState) => {
+      const key = datePickerRef.current;
+      return {
+        ...prevState,
+        [key]: {
+          date: selectedDate,
+          data: getDayData(selectedDate),
+        },
+      };
+    });
   }, []);
 
   const updateAlertText = useCallback(() => {
-    if (sourceData.length === 0) {
+    if (dayData.source.data.length === 0) {
       setAlertText("Der er ingen tasks gemt for den valgte dag.");
-      setCanSubmit(false);
-    } else if (destinationData.length > 0) {
+    } else if (dayData.destination.data.length > 0) {
       setAlertText(
-        "Der er allerede tasks for den dag du vil kopiere til. Disse bliver slettet, hvis du fortsætter"
+        "Der er allerede aktiviteter for den dag du vil kopiere til. Disse bliver slettet, hvis du fortsætter"
       );
-      setCanSubmit(true);
     } else {
       setAlertText("");
-      setCanSubmit(true);
     }
-  }, [destinationData, sourceData]);
+  }, [dayData]);
 
   useEffect(() => {
     updateAlertText();
   }, [updateAlertText]);
+
+  const isSubmitable = dayData.source.data.length === 0 || dayData.destination.data.length > 0;
 
   return (
     <Modal
@@ -90,7 +99,7 @@ export const CopyDayDataModal = (props: CopyDayDataModalProps) => {
         >
           <DatePickerButton
             label="Kopier fra"
-            date={sourceDate}
+            date={dayData.source.date}
             onPress={() => {
               datePickerRef.current = "source";
               setShowDatePicker(true);
@@ -98,7 +107,7 @@ export const CopyDayDataModal = (props: CopyDayDataModalProps) => {
           />
           <DatePickerButton
             label="Kopier til"
-            date={destinationDate}
+            date={dayData.destination.date}
             onPress={() => {
               datePickerRef.current = "destination";
               setShowDatePicker(true);
@@ -108,8 +117,8 @@ export const CopyDayDataModal = (props: CopyDayDataModalProps) => {
             <Text style={{ textAlign: "center" }}>{alertText}</Text>
           )}
           <Button
-            title={"Kopier Tasks"}
-            disabled={!canSubmit}
+            title={"Kopier Aktiviteter"}
+            disabled={isSubmitable}
             onPress={() => {
               setShowDatePicker(false);
               setModalVisible(false);
@@ -121,8 +130,8 @@ export const CopyDayDataModal = (props: CopyDayDataModalProps) => {
         <RNDateTimePicker
           value={
             datePickerRef.current === "destination"
-              ? destinationDate
-              : sourceDate
+              ? dayData.destination.date
+              : dayData.source.date
           }
           is24Hour={true}
           onChange={(_event, date) => handleDateChange(date)}
@@ -131,6 +140,7 @@ export const CopyDayDataModal = (props: CopyDayDataModalProps) => {
     </Modal>
   );
 };
+
 
 const DatePickerButton = ({
   label,
