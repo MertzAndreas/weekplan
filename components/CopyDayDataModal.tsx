@@ -25,11 +25,6 @@ type DayData = {
   destinationDate: Date;
 };
 
-type Errors = {
-  sourceDateError?: string;
-  destinationDateError?: string;
-};
-
 const nextDay = () => new Date(new Date().setDate(new Date().getDate() + 1));
 
 export const CopyDayDataModal = ({
@@ -39,7 +34,7 @@ export const CopyDayDataModal = ({
   const [modalVisible, setModalVisible] = useState(true);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const datePickerRef = useRef<'source' | 'destination'>('destination');
-  const [errors, setErrors] = useState<Errors>({});
+  const [error, setError] = useState<string>();
   const [dates, setDates] = useState<DayData>({
     sourceDate: sourceDate,
     sourceDateData: [],
@@ -52,12 +47,9 @@ export const CopyDayDataModal = ({
     const sourceDataActivities = queryClient.getQueryData<TaskDTO[]>(key);
 
     if (!sourceDataActivities) {
-      setErrors((prevErrors: Errors) => ({
-        ...prevErrors,
-        sourceDateError: `Ingen aktiviteter fundet for ${formattedDate(
-          dates.sourceDate
-        )}`,
-      }));
+      setError(
+        `Ingen aktiviteter fundet for ${formattedDate(dates.sourceDate)}`
+      );
       setDates((prevData) => ({
         ...prevData,
         sourceDateData: [],
@@ -69,38 +61,12 @@ export const CopyDayDataModal = ({
       ...prevData,
       sourceDateData: sourceDataActivities,
     }));
-    setErrors((prevErrors: Errors) => ({
-      ...prevErrors,
-      sourceDateError: undefined,
-    }));
+    setError('');
   }, [dates.sourceDate, queryClient]);
-
-  const getDestinationDateData = useCallback(() => {
-    const key = dateToQueryKey(dates.destinationDate);
-    const destinationDataActivities = queryClient.getQueryData<TaskDTO[]>(key);
-
-    if (destinationDataActivities) {
-      setErrors((prevErrors: Errors) => ({
-        ...prevErrors,
-        destinationDateError: `Aktiviteter findes allerede for ${formattedDate(
-          dates.destinationDate
-        )}`,
-      }));
-      return;
-    }
-
-    setErrors((prevErrors: Errors) => ({
-      ...prevErrors,
-      destinationDateError: undefined,
-    }));
-  }, [dates.destinationDate, queryClient]);
 
   useEffect(() => {
     getSourceDateData();
-    getDestinationDateData();
-  }, [getDestinationDateData, getSourceDateData]);
-
-  console.log('Called');
+  }, [getSourceDateData]);
 
   const handleDateChange = useCallback((selectedDate: Date | undefined) => {
     setShowDatePicker(false);
@@ -135,7 +101,7 @@ export const CopyDayDataModal = ({
               setShowDatePicker(true);
             }}
           />
-          {errors.sourceDateError && <Text>{errors.sourceDateError}</Text>}
+          {error && <Text>{error}</Text>}
           {dates.sourceDateData.map((activity) => (
             <View key={activity.id}>
               <Text>{activity.name}</Text>
@@ -150,9 +116,6 @@ export const CopyDayDataModal = ({
             }}
           />
 
-          {errors.destinationDateError && (
-            <Text>{errors.destinationDateError}</Text>
-          )}
           <Button
             title={'Kopier Aktiviteter'}
             onPress={() => {
