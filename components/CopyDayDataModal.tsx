@@ -5,24 +5,14 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
-  Pressable,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { TaskDTO } from '../types/TaskDTO';
-import { useQueryClient } from '@tanstack/react-query';
-import { dateToQueryKey } from '../hooks/useActivity';
-import { formattedDate } from '../utils/formattedDate';
+import useCopyDataModal from '../hooks/useCopyDataModal';
+import { useState } from 'react';
 
 type CopyDayDataModalProps = {
   destinationDate?: Date;
   sourceDate?: Date;
-};
-
-type DayData = {
-  sourceDate: Date;
-  sourceDateData: TaskDTO[];
-  destinationDate: Date;
 };
 
 const nextDay = () => new Date(new Date().setDate(new Date().getDate() + 1));
@@ -32,73 +22,34 @@ export const CopyDayDataModal = ({
   destinationDate = nextDay(),
 }: CopyDayDataModalProps) => {
   const [modalVisible, setModalVisible] = useState(true);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const datePickerRef = useRef<'source' | 'destination'>('destination');
-  const [error, setError] = useState<string>();
-  const [dates, setDates] = useState<DayData>({
-    sourceDate: sourceDate,
-    sourceDateData: [],
-    destinationDate: destinationDate,
+  const { handleDateChange, error, dates } = useCopyDataModal({
+    destinationDate,
+    sourceDate,
   });
-  const queryClient = useQueryClient();
-
-  const getSourceDateData = useCallback(() => {
-    const key = dateToQueryKey(dates.sourceDate);
-    const sourceDataActivities = queryClient.getQueryData<TaskDTO[]>(key);
-
-    if (!sourceDataActivities) {
-      setError(
-        `Ingen aktiviteter fundet for ${formattedDate(dates.sourceDate)}`
-      );
-      setDates((prevData) => ({
-        ...prevData,
-        sourceDateData: [],
-      }));
-      return;
-    }
-
-    setDates((prevData) => ({
-      ...prevData,
-      sourceDateData: sourceDataActivities,
-    }));
-    setError('');
-  }, [dates.sourceDate, queryClient]);
-
-  useEffect(() => {
-    getSourceDateData();
-  }, [getSourceDateData]);
-
-  const handleDateChange = useCallback((selectedDate: Date | undefined) => {
-    setShowDatePicker(false);
-    if (!selectedDate) return;
-    if (datePickerRef.current === 'source') {
-      setDates((prev) => ({ ...prev, sourceDate: selectedDate }));
-    } else {
-      setDates((prev) => ({ ...prev, destinationDate: selectedDate }));
-    }
-  }, []);
 
   return (
     <Modal
       visible={modalVisible}
       animationType="slide"
       transparent={true}
-      onRequestClose={() => setShowDatePicker(false)}>
+      onRequestClose={() => {
+        setModalVisible(false);
+      }}>
       <TouchableOpacity
         style={styles.modalBackground}
         onPress={() => {
-          setShowDatePicker(false);
           setModalVisible(false);
         }}>
         <View
           style={styles.modalContainer}
           onStartShouldSetResponder={() => true}>
-          <DatePickerButton
-            label="Kopier fra"
-            date={dates.sourceDate}
-            onPress={() => {
-              datePickerRef.current = 'source';
-              setShowDatePicker(true);
+          <Text style={styles.header}>Kopier Aktiviteter</Text>
+          <DateTimePicker
+            value={dates.sourceDate ?? new Date()}
+            is24Hour={true}
+            mode="date"
+            onChange={(_event, date) => {
+              handleDateChange(date, 'source');
             }}
           />
           {error && <Text>{error}</Text>}
@@ -107,53 +58,27 @@ export const CopyDayDataModal = ({
               <Text>{activity.name}</Text>
             </View>
           ))}
-          <DatePickerButton
-            label="Kopier til"
-            date={dates.destinationDate}
-            onPress={() => {
-              datePickerRef.current = 'destination';
-              setShowDatePicker(true);
+          <Text style={styles.header}>Til Dato</Text>
+          <DateTimePicker
+            value={dates.destinationDate ?? nextDay()}
+            is24Hour={true}
+            mode="date"
+            onChange={(_event, date) => {
+              handleDateChange(date, 'destination');
             }}
           />
-
           <Button
-            title={'Kopier Aktiviteter'}
+            title="Kopier Aktiviteter"
             onPress={() => {
-              setShowDatePicker(false);
               setModalVisible(false);
             }}
+            disabled={!!error}
           />
         </View>
       </TouchableOpacity>
-      {showDatePicker && (
-        <DateTimePicker
-          value={
-            datePickerRef.current === 'destination'
-              ? dates.destinationDate ?? new Date()
-              : dates.sourceDate ?? new Date()
-          }
-          is24Hour={true}
-          mode={'date'}
-          onChange={(_event, date) => handleDateChange(date)}
-        />
-      )}
     </Modal>
   );
 };
-
-const DatePickerButton = ({
-  label,
-  date,
-  onPress,
-}: {
-  label: string;
-  date: Date;
-  onPress: () => void;
-}) => (
-  <Pressable onPress={onPress}>
-    <Text style={styles.header}>{`${label}: ${formattedDate(date)}`}</Text>
-  </Pressable>
-);
 
 const styles = StyleSheet.create({
   modalBackground: {
