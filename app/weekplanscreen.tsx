@@ -1,8 +1,9 @@
-import { View, StyleSheet } from "react-native";
-import AddButton from "../components/AddButton";
-import TaskItemHeader from "../components/TaskItemHeader";
-import WeekSelection from "../components/WeekSelection";
-import DaysContainer from "../components/DaysContainer";
+import { View, StyleSheet } from 'react-native';
+import AddButton from '../components/AddButton';
+import TaskItemHeader from '../components/TaskItemHeader';
+import WeekSelection from '../components/WeekSelection';
+import DaysContainer from '../components/DaysContainer';
+import { CopyDayDataModal } from '../components/CopyDayDataModal';
 
 const WeekPlanScreen = () => {
   return (
@@ -12,7 +13,8 @@ const WeekPlanScreen = () => {
         <DaysContainer />
       </View>
       <TaskItemHeader />
-      <AddButton pathname={"./additem"} />
+      <AddButton pathname={'./additem'} />
+      <CopyDayDataModal />
     </View>
   );
 };
@@ -24,7 +26,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingVertical: 10,
-    backgroundColor: "#F2F5FA",
+    backgroundColor: '#F2F5FA',
   },
 });
 

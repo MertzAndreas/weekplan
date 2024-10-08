@@ -1,7 +1,6 @@
 export type TaskDTO = {
-    name:string,
-    description: string,
-    startTime:Date,
-    endTime:Date,
-    imageUrl:string
-}
+  id: number;
+  name: string;
+  startTime: Date;
+  endTime: Date;
+};
