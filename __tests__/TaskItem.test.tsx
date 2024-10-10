@@ -14,7 +14,7 @@ test("swiping left triggers deleteTask", () => {
       deleteTask={deleteTask}
       editTask={editTask}
       checkTask={checkTask}
-    />
+    />,
   );
 
   act(() => {
@@ -36,7 +36,7 @@ test("swiping right triggers editTask and checkTask", () => {
       deleteTask={deleteTask}
       editTask={editTask}
       checkTask={checkTask}
-    />
+    />,
   );
 
   act(() => {

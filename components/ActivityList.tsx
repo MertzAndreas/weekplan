@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import {ActivityEntry} from "./ActivityListItem";
 
 export const ActivityList = (activities: TaskDTO[]) => {
   const [selectedActivities, setSelectedActivities] = useState<boolean[]>(
@@ -37,61 +38,11 @@ export const ActivityList = (activities: TaskDTO[]) => {
   );
 };
 
-const ActivityEntry = (
-  activity: TaskDTO,
-  index: number,
-  toggleCallback: (index: number) => void,
-  selectedActivities: boolean[],
-) => {
-  function formatTime(date: Date) {
-    return date.toLocaleTimeString("da-DK", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-
-  const activityName = activity.name
-    ? activity.name.length <= 27
-      ? activity.name
-      : activity.name.substring(0, 25).concat("...")
-    : "";
-  const startTime = formatTime(activity.startTime);
-  const endTime = formatTime(activity.endTime);
-
-  return (
-    <TouchableOpacity onPress={() => toggleCallback(index)}>
-      <View
-        style={[
-          styles.activityEntry,
-          { borderLeftWidth: selectedActivities[index] ? 1 : 0 },
-        ]}
-        key={index.toString()}
-      >
-        <Text style={{ width: "70%" }}>{activityName}</Text>
-        <Text style={{ width: "30%", textAlign: "center" }}>
-          {startTime + "\n" + endTime}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
 const styles = StyleSheet.create({
   activityView: {
     padding: 5,
     width: "100%",
     height: "100%",
     borderRadius: 15,
-  },
-  activityEntry: {
-    display: "flex",
-    flexDirection: "row",
-    marginBottom: 2,
-    alignItems: "center",
-    borderStyle: "solid",
-    borderWidth: 0,
-    borderLeftWidth: 1,
-    borderColor: "blue",
-    paddingLeft: 5,
-  },
+  }
 });
